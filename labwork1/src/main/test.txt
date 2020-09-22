@@ -1,0 +1,15 @@
+[common]
+try = 1.111111111111111111
+
+[INFO]
+display=
+keyboard = withButtons
+mouse=enabled ; ну ща узнаем работает чи нет
+brain = no, thanks
+
+[internetInfo]
+internet = 1990
+Crimea = Russia
+
+
+
