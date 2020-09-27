@@ -55,7 +55,7 @@ public class IniParser {
         String line;
         boolean flag = false;
         Section section = null;
-        while (sc.hasNext()) {
+        while (sc.hasNextLine()) {
             line = sc.nextLine();
 
             if(line.contains(";")) {
@@ -85,58 +85,19 @@ public class IniParser {
                     if(values.length < 2) {
                         values = new String[] {values[0], " "};
                     }
-
                     section.setDataSection(values[0],values[1]);
+                    continue;
                 } else
                     throw new Exception("Incorrect parameter in line: " + line);
             }
-            if (!sc.hasNext()) {
+            if (!sc.hasNextLine() && flag) {
                 dataIniParser.add(section);
             }
         }
 
-
-        /*
-        while (sc.hasNext()){
-            line = sc.nextLine();
-
-            if (line.contains("[") & line.contains("]")) {
-                String sectionName = line.substring(line.indexOf("[")+1,line.indexOf("]"));
-                Section section = new Section();
-                section.setSectionValue(sectionName);
-
-
-                if (sc.hasNext()) {
-                    line = sc.nextLine();
-
-                    while (line.contains("=")) {
-                        if(line.contains(";")) {
-                            line = line.substring(0,line.indexOf(";")-1);
-                        }
-                        String[] values = line.split("=");
-                        values = valuesWithoutSpaces(values);
-                        if(values.length < 2){
-                            values = new String[] {values[0], " "};
-                        }
-
-                        section.setDataSection(values[0],values[1]);
-
-                        if(sc.hasNext()) {
-                            line = sc.nextLine();
-                        } else {
-                            dataIniParser.add(section);
-                            break;
-                        }
-                    }
-                }
-                dataIniParser.add(section);
-            }
-        }
-         */
         if (section == null){
             throw new Exception("Empty file");
         }
-        dataIniParser.add(section);
         return dataIniParser;
     }
 
