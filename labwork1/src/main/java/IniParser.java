@@ -21,7 +21,7 @@ public class IniParser {
 
         sc = new Scanner(workFile);
         String line;
-        boolean flag = false;
+        boolean isSection = false;
         Section section = null;
         while (sc.hasNextLine()) {
             line = sc.nextLine();
@@ -34,18 +34,18 @@ public class IniParser {
             if (line.contains("[") & line.contains("]")){
                 section = new Section();
                 section.setSectionName(line.substring(line.indexOf("[")+1,line.indexOf("]")));
-                flag = true;
+                isSection = true;
                 continue;
             }
             if (line.equals("")) {
-                if (flag){
+                if (isSection){
                     dataIniParser.add(section); //если первые строки пустые, то не будет добавлять
                 }
-                flag = false;
+                isSection = false;
                 continue;
             }
 
-            if (flag) {
+            if (isSection) {
                 if (line.contains("=")) {
                     String[] values = line.split("=");
                     for(int i=0; i < values.length; i++){
@@ -59,7 +59,7 @@ public class IniParser {
                 } else
                     throw new Exception("Incorrect parameter in line: " + line);
             }
-            if (!sc.hasNextLine() && flag) {
+            if (!sc.hasNextLine() && isSection) {
                 dataIniParser.add(section);
             }
         }
