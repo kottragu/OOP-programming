@@ -13,38 +13,6 @@ public class IniParser {
         dataIniParser = new DataIniParser();
     }
 
-
-    public String valuesWithoutSpaces(String valueWithSpaces) {
-        while (valueWithSpaces.startsWith(" ") || valueWithSpaces.endsWith(" ")) {
-            if (valueWithSpaces.startsWith(" ")) {
-                valueWithSpaces = valueWithSpaces.substring(1);
-            }
-            if (valueWithSpaces.endsWith(" ")) {
-                valueWithSpaces = valueWithSpaces.substring(0,valueWithSpaces.length()-1);
-            }
-        }
-        return valueWithSpaces;
-    }
-
-    public String[] valuesWithoutSpaces(String[] valueWithSpaces) {
-        List<String> arrayList = new ArrayList<>();
-        for (String s: valueWithSpaces) {
-            while (s.startsWith(" ") || s.endsWith(" ")) {
-                if (s.startsWith(" ")) {
-                    s = s.substring(1);
-                }
-                if (s.endsWith(" ")) {
-                    s = s.substring(0, s.length() - 1);
-                }
-            }
-            arrayList.add(s);
-        }
-        return arrayList.toArray(new String[valueWithSpaces.length-1]);
-    }
-
-
-
-
     public DataIniParser Parse(File fileAddress) throws Exception {
         if (!fileAddress.getName().endsWith(".ini")){
             throw new Exception("Doesn't *.ini file");
@@ -61,8 +29,7 @@ public class IniParser {
             if(line.contains(";")) {
                 line = line.substring(0,line.indexOf(";"));
             }
-
-            line = valuesWithoutSpaces(line);
+            line = line.trim();
 
             if (line.contains("[") & line.contains("]")){
                 section = new Section();
@@ -72,7 +39,7 @@ public class IniParser {
             }
             if (line.equals("")) {
                 if (flag){
-                    dataIniParser.add(section); //если первые строки пустые, то не буде добавлять
+                    dataIniParser.add(section); //если первые строки пустые, то не будет добавлять
                 }
                 flag = false;
                 continue;
@@ -81,7 +48,9 @@ public class IniParser {
             if (flag) {
                 if (line.contains("=")) {
                     String[] values = line.split("=");
-                    values = valuesWithoutSpaces(values);
+                    for(int i=0; i < values.length; i++){
+                        values[i] = values[i].trim();
+                    }
                     if(values.length < 2) {
                         values = new String[] {values[0], " "};
                     }
