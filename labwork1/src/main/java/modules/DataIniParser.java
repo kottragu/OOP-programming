@@ -33,8 +33,7 @@ public class DataIniParser<T> {
                 return s.getParametersNames();
             }
         }
-
-        throw new Exception("Incorrect section names");
+        throw new Exception("Incorrect section name");
     }
 
     public String tryGetString(String section, String parameter) throws Exception {
@@ -47,7 +46,7 @@ public class DataIniParser<T> {
                     throw new Exception("Parameter " + parameter + " doesn't exist in " + section);
             }
         }
-        throw new Exception("Section's name doesn't exist");
+        throw new Exception("Section's" + section +"doesn't exist");
     }
 
     public int size() {
@@ -55,35 +54,21 @@ public class DataIniParser<T> {
     }
 
     public int tryGetInt(String section, String parameter) throws Exception {
-        for (Section s: arrayList) {
-            if (s.getSectionName().equals(section)) {
-                if (s.getExistSectionValue(parameter))
-                    try {
-                        return Integer.parseInt(s.getSectionValue(parameter));
-                    } catch (Exception e) {
-                        throw new Exception("Value (" + s.getSectionValue(parameter) + ") can't cast to integer");
-                    }
-                else
-                    throw new Exception("Parameter " + parameter + " doesn't exist in " + section);
-            }
+        String stringValue = tryGetString(section, parameter);
+        try{
+            return Integer.parseInt(stringValue);
+        }catch (Exception e){
+            throw new CustomException(stringValue, "Integer");
         }
-        throw new Exception("Selected section (" + section + ") doesn't exist");
     }
 
     public Double tryGetDouble(String section, String parameter) throws Exception {
-        for (Section s: arrayList) {
-            if (s.getSectionName().equals(section)) {
-                if (s.getExistSectionValue(parameter))
-                    try {
-                        return Double.parseDouble(s.getSectionValue(parameter));
-                    } catch (Exception e) {
-                        throw new Exception("Value (" + s.getSectionValue(parameter) + ") can't cast to integer");
-                    }
-                else
-                    throw new Exception("Parameter " + parameter + " doesn't exist in " + section);
-            }
+        String stringValue = tryGetString(section, parameter);
+        try{
+            return Double.parseDouble(stringValue);
+        }catch (Exception e){
+            throw new CustomException(stringValue, "Double");
         }
-        throw new Exception("Selected section (" + section + ") doesn't exist");
     }
 
 }

@@ -13,38 +13,6 @@ public class IniParser {
         dataIniParser = new DataIniParser();
     }
 
-
-    public String valuesWithoutSpaces(String valueWithSpaces) {
-        while (valueWithSpaces.startsWith(" ") || valueWithSpaces.endsWith(" ")) {
-            if (valueWithSpaces.startsWith(" ")) {
-                valueWithSpaces = valueWithSpaces.substring(1);
-            }
-            if (valueWithSpaces.endsWith(" ")) {
-                valueWithSpaces = valueWithSpaces.substring(0,valueWithSpaces.length()-1);
-            }
-        }
-        return valueWithSpaces;
-    }
-
-    public String[] valuesWithoutSpaces(String[] valueWithSpaces) {
-        List<String> arrayList = new ArrayList<>();
-        for (String s: valueWithSpaces) {
-            while (s.startsWith(" ") || s.endsWith(" ")) {
-                if (s.startsWith(" ")) {
-                    s = s.substring(1);
-                }
-                if (s.endsWith(" ")) {
-                    s = s.substring(0, s.length() - 1);
-                }
-            }
-            arrayList.add(s);
-        }
-        return arrayList.toArray(new String[valueWithSpaces.length-1]);
-    }
-
-
-
-
     public DataIniParser Parse(File fileAddress) throws Exception {
         if (!fileAddress.getName().endsWith(".ini")){
             throw new Exception("Doesn't *.ini file");
@@ -53,7 +21,7 @@ public class IniParser {
 
         sc = new Scanner(workFile);
         String line;
-        boolean flag = false;
+        boolean isSection = false;
         Section section = null;
         while (sc.hasNextLine()) {
             line = sc.nextLine();
@@ -61,27 +29,28 @@ public class IniParser {
             if(line.contains(";")) {
                 line = line.substring(0,line.indexOf(";"));
             }
-
-            line = valuesWithoutSpaces(line);
+            line = line.trim();
 
             if (line.contains("[") & line.contains("]")){
                 section = new Section();
                 section.setSectionName(line.substring(line.indexOf("[")+1,line.indexOf("]")));
-                flag = true;
+                isSection = true;
                 continue;
             }
             if (line.equals("")) {
-                if (flag){
-                    dataIniParser.add(section); //если первые строки пустые, то не буде добавлять
+                if (isSection){
+                    dataIniParser.add(section); //если первые строки пустые, то не будет добавлять
                 }
-                flag = false;
+                isSection = false;
                 continue;
             }
 
-            if (flag) {
+            if (isSection) {
                 if (line.contains("=")) {
                     String[] values = line.split("=");
-                    values = valuesWithoutSpaces(values);
+                    for(int i=0; i < values.length; i++){
+                        values[i] = values[i].trim();
+                    }
                     if(values.length < 2) {
                         values = new String[] {values[0], " "};
                     }
@@ -90,7 +59,7 @@ public class IniParser {
                 } else
                     throw new Exception("Incorrect parameter in line: " + line);
             }
-            if (!sc.hasNextLine() && flag) {
+            if (!sc.hasNextLine() && isSection) {
                 dataIniParser.add(section);
             }
         }
