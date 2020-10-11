@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Shop {
     private final String id;
@@ -13,25 +15,6 @@ public class Shop {
         id = shopId;
     }
 
-    public void addProduct(Product product) throws Exception {
-        boolean isExistProduct = false;
-        for (Product existProduct: products) {
-            if (existProduct.getId().equals(product.getId())) {
-                isExistProduct = true;
-                if (existProduct.getName().equals(product.getName())) {
-                    existProduct.changeCount(existProduct.getCount() + product.getCount());
-                    if (product.getValue() != 0.0D){
-                        existProduct.setValue(product.getValue());
-                    }
-
-                } else
-                    throw new Exception("Incorrect name of product. Product with ID " + existProduct.getId() + " already has name " + existProduct.getName());
-            }
-        }
-        if(!isExistProduct)
-            products.add(product);
-    }
-
     public String getName() {
         return name;
     }
@@ -44,23 +27,84 @@ public class Shop {
         return address;
     }
 
-    public void setDelivery(Products delivery) throws Exception {
+
+    public void addProduct(Product product) throws Exception {
+        boolean isExistProduct = false;
+        for (Product existProduct: products) {
+            if (existProduct.getId().equals(product.getId())) {
+                isExistProduct = true;
+                existProduct.addCount(product);
+            }
+        }
+        if (!isExistProduct)
+            products.add(product);
+    }
+
+    public void addProduct(ArrayList<Product> arrayListProducts) throws Exception {
+        for (Product product: arrayListProducts) {
+            this.addProduct(product);
+        }
+    }
+
+    private int countForTryBuy(Product product, double money) {
+        if (product.getCount() > (int) money/product.getValue()) {
+            return (int)(money/product.getValue());
+        } else{
+            return product.getCount();
+        }
+    }
+
+    public Map<String, Integer> tryBuy(double money) {
+
+        Map<String, Integer> countProduct = new HashMap<>();
+        for (Product product: products) {
+            countProduct.put(product.getId(), countForTryBuy(product, money));
+        }
+        return countProduct;
+    }
+
+    public double cheapestProduct(String productId) {
+        double min = Double.MAX_VALUE;
+        for(Product p: products) {
+            if (p.getId().equals(productId) && p.getValue() < min) {
+                min = p.getValue();
+            }
+        }
+        return min;
+    }
+
+    public void setDelivery(Transportation delivery) throws Exception {
         for(Product product: delivery.getProducts()){
             this.addProduct(product);
         }
     }
 
-    public double setPurchase(Products purchase) throws Exception {
+    public double getBatch(Map<String, Integer> batch) {
+        int countProductsInShop = 0;
+        double shopPrice = 0;
+        for(String key: batch.keySet()) {
+            for (Product product: products) {
+                if (product.getId().equals(key) && product.getCount() < batch.get(key)) {
+                    return Double.MAX_VALUE;
+                } else if (product.getId().equals(key)) {
+                    countProductsInShop++;
+                    shopPrice += batch.get(key) * product.getValue();
+                }
+            }
+        }
+        if (countProductsInShop == batch.size()){
+            return shopPrice;
+        } else {
+            return Double.MAX_VALUE;
+        }
+    }
+
+    public double setPurchase(Transportation purchase) throws Exception {
         double resultSum = 0;
-        for(Product product: purchase.getProducts()){
-            for (Product productInShop: products){
-                if(product.getId().equals(productInShop.getId()) && product.getName().equals(productInShop.getName())){
-                    if(productInShop.getCount() < product.getCount()){
-                        throw new Exception("Нема продуктов в магазине");
-                    } else {
-                        resultSum += product.getCount() * productInShop.getValue();
-                        productInShop.changeCount(productInShop.getCount() - product.getCount());
-                    }
+        for(Product product: purchase.getProducts()) {
+            for(Product productInShop: products) {
+                if(product.getId().equals(productInShop.getId())) {
+                    resultSum += productInShop.purchase(product);
                 }
             }
         }

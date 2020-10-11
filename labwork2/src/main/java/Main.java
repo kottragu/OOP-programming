@@ -1,8 +1,7 @@
 import org.junit.jupiter.api.Test;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class Main {
@@ -67,7 +66,7 @@ public class Main {
         shopManager.addProduct("Qwe1109t8qqrf", new Product("lstjbhm", "Сгущёнка", 5, 85));
         shopManager.addProduct("Qwe1109t8qqrf", new Product("a1971573", "приправа для супа", 11, 45));
 
-        Products products = new Products();
+        Transportation products = new Transportation();
         products.add(new Product("a1971573", "приправа для супа", 10));
         products.add(new Product("vbjmca,", "Хлеб", 23));
         assertEquals(shopManager.purchase("Qwe1109t8qqrf", products), 1140.0);
