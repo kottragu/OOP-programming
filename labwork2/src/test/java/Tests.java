@@ -1,10 +1,12 @@
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Main {
+public class Tests {
+
     @Test
     public void testProgram1() throws Exception {
         ShopManager shopManager = new ShopManager();
