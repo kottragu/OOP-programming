@@ -1,8 +1,6 @@
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 
 public class ShopManager {
@@ -13,23 +11,24 @@ public class ShopManager {
     }
 
     public void addProduct(String shopId, Product product) throws Exception {
-        for(Shop shop: shops) {
-            if (shop.getId().equals(shopId)){
-                shop.addProduct(product);
-            }
-        }
+        shops.stream().filter(x -> x.getId().equals(shopId))
+                                    .findFirst()
+                                    .orElseThrow()
+                                    .addProduct(product);
     }
 
     public void addProduct(String shopId, ArrayList<Product> defaultProducts) throws Exception {
-        for(Shop shop: shops) {
-            if (shop.getId().equals(shopId)){
-                shop.addProduct(defaultProducts);
-            }
-        }
+        shops.stream().filter(x -> x.getId().equals(shopId))
+                                    .findFirst()
+                                    .orElseThrow()
+                                    .addProduct(defaultProducts);
     }
 
-    public void setShop(String shopName, String address, String shopId) {
-        shops.add(new Shop(shopName, address, shopId));
+    public void setShop(String shopName, String address, String shopId) throws Exception {
+        if (shops.stream().noneMatch(x -> x.getId().equals(shopId)))
+            shops.add(new Shop(shopName, address, shopId));
+        else
+            throw new Exception("Shop with id " + shopId + " already exist");
     }
 
     public String[] getShopsNames() {
@@ -49,25 +48,25 @@ public class ShopManager {
     }
 
     public void delivery(String shopId, Transportation delivery) throws Exception {
-        for(Shop shop: shops){
-            if(shop.getId().equals(shopId)) {
-                shop.setDelivery(delivery);
-            }
-        }
-        throw new Exception("Incorrect shopID: " + shopId);
+        if (shops.stream().noneMatch(x -> x.getId().equals(shopId)))
+            throw new Exception("Incorrect shopID: " + shopId);
+        shops.stream().filter(x -> x.getId().equals(shopId)).findFirst().orElseThrow().setDelivery(delivery);
     }
 
     public double purchase(String shopId, Transportation purchase) throws Exception {
-        double resultSum = 0;
+        double resultSum = 0.0D;
         boolean isShopExist = false;
         for(Shop shop: shops) {
             if(shop.getId().equals(shopId)) {
                 isShopExist = true;
-                resultSum += shop.setPurchase(purchase);
+                if (shop.tryGetPurchase(purchase))
+                    resultSum += shop.setPurchase(purchase);
             }
         }
         if (!isShopExist) {
             throw new Exception("Incorrect shopID: " + shopId);
+        } else if (resultSum == 0.0D) {
+            throw new Exception("Недостаточно товара");
         } else
             return resultSum;
     }
@@ -75,12 +74,12 @@ public class ShopManager {
     public String getShopIdWithCheapestProduct(String productId) throws Exception {
         String resultID = null;
         double minPrice = Double.MAX_VALUE;
-        double tempMin;
-        for (Shop shop: shops){
-            tempMin = shop.cheapestProduct(productId);
-            if(tempMin < minPrice){
-                resultID = shop.getId();
-                minPrice = tempMin;
+        for (Shop shop: shops) {
+            if(shop.tryGetCheapestProduct(productId)) {
+                if (shop.cheapestProduct(productId) < minPrice) {
+                    resultID = shop.getId();
+                    minPrice = shop.cheapestProduct(productId);
+                }
             }
         }
         if (minPrice != Double.MAX_VALUE) {
@@ -99,18 +98,23 @@ public class ShopManager {
         return buy;
     }
 
-    public String getCheapestBatch(Map<String, Integer> batch) {
+    public String getCheapestBatch(Map<String, Integer> batch) throws Exception {
         String cheapestShopId = null;
         double minPrice = Double.MAX_VALUE;
-
         for (Shop shop: shops) {
-            double shopPrice  = shop.getBatch(batch);
-            if (shopPrice < minPrice){
-                minPrice = shopPrice;
-                cheapestShopId = shop.getId();
+            if(shop.tryGetBatch(batch)) {
+                double shopPrice = shop.getBatch(batch);
+                if (shopPrice < minPrice) {
+                    minPrice = shopPrice;
+                    cheapestShopId = shop.getId();
+                }
             }
         }
-        return cheapestShopId;
+        System.out.println(cheapestShopId);
+        if (cheapestShopId == null) {
+            throw new Exception("There isn't the batch");
+        } else
+            return cheapestShopId;
     }
 
 }

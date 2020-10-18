@@ -1,3 +1,4 @@
+import java.util.stream.Stream;
 
 public class Product {
     private final String name;
@@ -62,15 +63,8 @@ public class Product {
     }
 
     public double purchase(Product purchasedProduct) throws Exception {
-        double resultSum = 0;
-        if (this.getName().equals(purchasedProduct.getName())) {
-            if(this.getCount() < purchasedProduct.getCount()){
-                throw new Exception("Нема продуктов в магазине");
-            } else {
-                resultSum += purchasedProduct.getCount() * this.getValue();
-                this.changeCount(this.getCount() - purchasedProduct.getCount());
-            }
-        }
+        double resultSum = purchasedProduct.getCount() * this.getValue();
+        this.changeCount(this.getCount() - purchasedProduct.getCount());
         return resultSum;
     }
 }

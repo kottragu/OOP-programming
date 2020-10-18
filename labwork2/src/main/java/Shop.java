@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class Shop {
     private final String id;
@@ -28,16 +29,14 @@ public class Shop {
     }
 
 
-    public void addProduct(Product product) throws Exception {
-        boolean isExistProduct = false;
+    public void addProduct(Product product) throws Exception { // проверка на имя
         for (Product existProduct: products) {
             if (existProduct.getId().equals(product.getId())) {
-                isExistProduct = true;
                 existProduct.addCount(product);
+                return;
             }
         }
-        if (!isExistProduct)
-            products.add(product);
+        products.add(product);
     }
 
     public void addProduct(ArrayList<Product> arrayListProducts) throws Exception {
@@ -49,13 +48,12 @@ public class Shop {
     private int countForTryBuy(Product product, double money) {
         if (product.getCount() > (int) money/product.getValue()) {
             return (int)(money/product.getValue());
-        } else{
+        } else {
             return product.getCount();
         }
     }
 
     public Map<String, Integer> tryBuy(double money) {
-
         Map<String, Integer> countProduct = new HashMap<>();
         for (Product product: products) {
             countProduct.put(product.getId(), countForTryBuy(product, money));
@@ -63,40 +61,59 @@ public class Shop {
         return countProduct;
     }
 
-    public double cheapestProduct(String productId) {
-        double min = Double.MAX_VALUE;
-        for(Product p: products) {
-            if (p.getId().equals(productId) && p.getValue() < min) {
-                min = p.getValue();
+    public boolean tryGetCheapestProduct(String productId) {
+        for (Product p: products) {
+            if (p.getId().equals(productId) && p.getValue() != 0.0D) {
+                return true;
             }
         }
-        return min;
+        return false;
+    }
+
+    public double cheapestProduct(String productId) {
+        double value = 0;
+        for (Product p: products) {
+            if (p.getId().equals(productId)) {
+                value = p.getValue();
+            }
+        }
+        return value;
     }
 
     public void setDelivery(Transportation delivery) throws Exception {
-        for(Product product: delivery.getProducts()){
+        for (Product product: delivery.getProducts()) {
             this.addProduct(product);
         }
     }
 
+    public boolean tryGetBatch (Map<String, Integer> batch) {
+        for (String key: batch.keySet()) {
+            if (products.stream().noneMatch(p -> p.getId().equals(key) && p.getCount() >= batch.get(key)))
+                return false;
+        }
+        return true;
+    }
+
     public double getBatch(Map<String, Integer> batch) {
-        int countProductsInShop = 0;
         double shopPrice = 0;
-        for(String key: batch.keySet()) {
+        for (String key: batch.keySet()) {
             for (Product product: products) {
-                if (product.getId().equals(key) && product.getCount() < batch.get(key)) {
-                    return Double.MAX_VALUE;
-                } else if (product.getId().equals(key)) {
-                    countProductsInShop++;
-                    shopPrice += batch.get(key) * product.getValue();
-                }
+                shopPrice += batch.get(key) * product.getValue();
             }
         }
-        if (countProductsInShop == batch.size()){
-            return shopPrice;
-        } else {
-            return Double.MAX_VALUE;
+        return shopPrice;
+    }
+
+    public boolean tryGetPurchase(Transportation purchase) {
+        for (Product product: purchase.getProducts()) {
+            Stream<Product> productStream = products.stream();
+            if (productStream.noneMatch(x -> x.getId().equals(product.getId()) &&
+                                             x.getCount() >= product.getCount() &&
+                                             x.getName().equals(product.getName())))
+                return false;
+
         }
+        return true;
     }
 
     public double setPurchase(Transportation purchase) throws Exception {
