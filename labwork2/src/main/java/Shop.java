@@ -1,15 +1,17 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
+
 public class Shop {
-    private final String id;
+    private final UUID id;
     private final String name;
     private final String address;
     private ArrayList<Product> products;
 
-    Shop(String shopName, String shopAddress, String shopId) {
+    Shop(String shopName, String shopAddress, UUID shopId) {
         products = new ArrayList<>();
         name = shopName;
         address = shopAddress;
@@ -20,7 +22,7 @@ public class Shop {
         return name;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -29,9 +31,12 @@ public class Shop {
     }
 
 
-    public void addProduct(Product product) throws Exception { // проверка на имя
+    public void addProduct(Product product) throws Exception {
+        if (products.stream().anyMatch(x-> x.equals(product) && !x.getName().equals(product.getName()))) {
+            throw new Exception("Incorrect name of product. Product with ID " + product.getId() + " already exist with different name");
+        }
         for (Product existProduct: products) {
-            if (existProduct.getId().equals(product.getId())) {
+            if (existProduct.equals(product)) {
                 existProduct.addCount(product);
                 return;
             }
@@ -41,36 +46,27 @@ public class Shop {
 
     public void addProduct(ArrayList<Product> arrayListProducts) throws Exception {
         for (Product product: arrayListProducts) {
-            this.addProduct(product);
+            addProduct(product);
         }
     }
 
     private int countForTryBuy(Product product, double money) {
-        if (product.getCount() > (int) money/product.getValue()) {
-            return (int)(money/product.getValue());
-        } else {
-            return product.getCount();
-        }
+        return Math.min(product.getCount(), (int)(money/product.getValue()));
     }
 
-    public Map<String, Integer> tryBuy(double money) {
-        Map<String, Integer> countProduct = new HashMap<>();
+    public Map<UUID, Integer> tryBuy(double money) {
+        Map<UUID, Integer> countProduct = new HashMap<>();
         for (Product product: products) {
             countProduct.put(product.getId(), countForTryBuy(product, money));
         }
         return countProduct;
     }
 
-    public boolean tryGetCheapestProduct(String productId) {
-        for (Product p: products) {
-            if (p.getId().equals(productId) && p.getValue() != 0.0D) {
-                return true;
-            }
-        }
-        return false;
+    public boolean tryGetCheapestProduct(UUID productId) {
+        return products.stream().anyMatch(p->p.getId().equals(productId) && p.getValue() != 0.0D);
     }
 
-    public double cheapestProduct(String productId) {
+    public double cheapestProduct(UUID productId) {
         double value = 0;
         for (Product p: products) {
             if (p.getId().equals(productId)) {
@@ -82,21 +78,21 @@ public class Shop {
 
     public void setDelivery(Transportation delivery) throws Exception {
         for (Product product: delivery.getProducts()) {
-            this.addProduct(product);
+            addProduct(product);
         }
     }
 
-    public boolean tryGetBatch (Map<String, Integer> batch) {
-        for (String key: batch.keySet()) {
+    public boolean tryGetBatch (Map<UUID, Integer> batch) {
+        for (UUID key: batch.keySet()) {
             if (products.stream().noneMatch(p -> p.getId().equals(key) && p.getCount() >= batch.get(key)))
                 return false;
         }
         return true;
     }
 
-    public double getBatch(Map<String, Integer> batch) {
+    public double getBatch(Map<UUID, Integer> batch) {
         double shopPrice = 0;
-        for (String key: batch.keySet()) {
+        for (UUID key: batch.keySet()) {
             for (Product product: products) {
                 shopPrice += batch.get(key) * product.getValue();
             }

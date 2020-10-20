@@ -1,34 +1,35 @@
-
 import java.util.*;
-import java.util.stream.Stream;
 
 
 public class ShopManager {
-    ArrayList<Shop> shops;
+    private ArrayList<Shop> shops;
 
     ShopManager(){
         shops = new ArrayList<>();
     }
 
-    public void addProduct(String shopId, Product product) throws Exception {
+    public void addProduct(UUID shopId, Product product) throws Exception {
         shops.stream().filter(x -> x.getId().equals(shopId))
                                     .findFirst()
                                     .orElseThrow()
                                     .addProduct(product);
     }
 
-    public void addProduct(String shopId, ArrayList<Product> defaultProducts) throws Exception {
+    public void addProduct(UUID shopId, ArrayList<Product> defaultProducts) throws Exception {
         shops.stream().filter(x -> x.getId().equals(shopId))
                                     .findFirst()
                                     .orElseThrow()
                                     .addProduct(defaultProducts);
     }
 
-    public void setShop(String shopName, String address, String shopId) throws Exception {
-        if (shops.stream().noneMatch(x -> x.getId().equals(shopId)))
-            shops.add(new Shop(shopName, address, shopId));
-        else
-            throw new Exception("Shop with id " + shopId + " already exist");
+    public UUID setShop(String shopName, String address) throws Exception {
+        UUID shopId  = UUID.randomUUID();
+        shops.add(new Shop(shopName, address, shopId));
+        return shopId;
+    }
+
+    public ArrayList<Shop> getShops(){
+        return shops;
     }
 
     public String[] getShopsNames() {
@@ -42,18 +43,18 @@ public class ShopManager {
     public String[] getShopsId() {
         List<String> shopsId = new ArrayList<>();
         for (Shop shop:shops) {
-            shopsId.add(shop.getId());
+            shopsId.add(shop.getId().toString());
         }
         return shopsId.toArray(new String[shops.size()]);
     }
 
-    public void delivery(String shopId, Transportation delivery) throws Exception {
+    public void delivery(UUID shopId, Transportation delivery) throws Exception {
         if (shops.stream().noneMatch(x -> x.getId().equals(shopId)))
             throw new Exception("Incorrect shopID: " + shopId);
         shops.stream().filter(x -> x.getId().equals(shopId)).findFirst().orElseThrow().setDelivery(delivery);
     }
 
-    public double purchase(String shopId, Transportation purchase) throws Exception {
+    public double purchase(UUID shopId, Transportation purchase) throws Exception {
         double resultSum = 0.0D;
         boolean isShopExist = false;
         for(Shop shop: shops) {
@@ -71,8 +72,8 @@ public class ShopManager {
             return resultSum;
     }
 
-    public String getShopIdWithCheapestProduct(String productId) throws Exception {
-        String resultID = null;
+    public UUID getShopIdWithCheapestProduct(UUID productId) throws Exception {
+        UUID resultID = null;
         double minPrice = Double.MAX_VALUE;
         for (Shop shop: shops) {
             if(shop.tryGetCheapestProduct(productId)) {
@@ -88,8 +89,8 @@ public class ShopManager {
         return resultID;
     }
 
-    public Map<String, Integer> tryBuy (String shopId, double money) {
-        Map<String, Integer> buy = new HashMap<>();
+    public Map<UUID, Integer> tryBuy (UUID shopId, double money) {
+        Map<UUID, Integer> buy = new HashMap<>();
         for (Shop shop: shops) {
             if(shop.getId().equals(shopId)) {
                 buy.putAll(shop.tryBuy(money));
@@ -98,8 +99,8 @@ public class ShopManager {
         return buy;
     }
 
-    public String getCheapestBatch(Map<String, Integer> batch) throws Exception {
-        String cheapestShopId = null;
+    public UUID getCheapestBatch(Map<UUID, Integer> batch) throws Exception {
+        UUID cheapestShopId = null;
         double minPrice = Double.MAX_VALUE;
         for (Shop shop: shops) {
             if(shop.tryGetBatch(batch)) {
@@ -110,7 +111,6 @@ public class ShopManager {
                 }
             }
         }
-        System.out.println(cheapestShopId);
         if (cheapestShopId == null) {
             throw new Exception("There isn't the batch");
         } else
