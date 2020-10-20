@@ -1,25 +1,35 @@
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class ShopManager {
-    ArrayList<Shop> shops;
+    private ArrayList<Shop> shops;
 
     ShopManager(){
         shops = new ArrayList<>();
     }
-    public void addProduct(String shopId, Product product) throws Exception {
-        for(Shop shop: shops) {
-            if (shop.getId().equals(shopId)){
-                shop.addProduct(product);
-            }
-        }
+
+    public void addProduct(UUID shopId, Product product) throws Exception {
+        shops.stream().filter(x -> x.getId().equals(shopId))
+                                    .findFirst()
+                                    .orElseThrow()
+                                    .addProduct(product);
     }
-    public void setShop(String shopName, String address, String shopId) {
+
+    public void addProduct(UUID shopId, ArrayList<Product> defaultProducts) throws Exception {
+        shops.stream().filter(x -> x.getId().equals(shopId))
+                                    .findFirst()
+                                    .orElseThrow()
+                                    .addProduct(defaultProducts);
+    }
+
+    public UUID setShop(String shopName, String address) throws Exception {
+        UUID shopId  = UUID.randomUUID();
         shops.add(new Shop(shopName, address, shopId));
+        return shopId;
+    }
+
+    public ArrayList<Shop> getShops(){
+        return shops;
     }
 
     public String[] getShopsNames() {
@@ -33,112 +43,78 @@ public class ShopManager {
     public String[] getShopsId() {
         List<String> shopsId = new ArrayList<>();
         for (Shop shop:shops) {
-            shopsId.add(shop.getId());
+            shopsId.add(shop.getId().toString());
         }
         return shopsId.toArray(new String[shops.size()]);
     }
 
-    public void delivery(String shopId, Products delivery) throws Exception {
-        for(Shop shop: shops){
-            if(shop.getId().equals(shopId)) {
-                shop.setDelivery(delivery);
-            }
-        }
-        throw new Exception("Incorrect shopID: " + shopId);
+    public void delivery(UUID shopId, Transportation delivery) throws Exception {
+        if (shops.stream().noneMatch(x -> x.getId().equals(shopId)))
+            throw new Exception("Incorrect shopID: " + shopId);
+        shops.stream().filter(x -> x.getId().equals(shopId)).findFirst().orElseThrow().setDelivery(delivery);
     }
 
-    public double purchase(String shopId, Products purchase) throws Exception {
-        double resultSum = 0;
+    public double purchase(UUID shopId, Transportation purchase) throws Exception {
+        double resultSum = 0.0D;
         boolean isShopExist = false;
         for(Shop shop: shops) {
             if(shop.getId().equals(shopId)) {
                 isShopExist = true;
-                resultSum += shop.setPurchase(purchase);
+                if (shop.tryGetPurchase(purchase))
+                    resultSum += shop.setPurchase(purchase);
             }
         }
         if (!isShopExist) {
             throw new Exception("Incorrect shopID: " + shopId);
+        } else if (resultSum == 0.0D) {
+            throw new Exception("Недостаточно товара");
         } else
             return resultSum;
     }
 
-    public String getShopIdWithCheapestProduct(String productId) {
-        String resultID = null;
-        double minPrice = 0.0D;
-        boolean isFirst = true;
-        for (Shop shop: shops){
-            for(Product product: shop.getProducts()) {
-                if(product.getId().equals(productId)) {
-                    if (product.getValue() == 0.0D) {
-                        continue;
-                    }
-                    if (isFirst){
-                        minPrice = product.getValue();
-                        resultID = product.getId();
-                        isFirst = false;
-                        continue;
-                    }
-                    if (minPrice > product.getValue()) {
-                        minPrice = product.getValue();
-                        resultID = product.getId();
-                    }
+    public UUID getShopIdWithCheapestProduct(UUID productId) throws Exception {
+        UUID resultID = null;
+        double minPrice = Double.MAX_VALUE;
+        for (Shop shop: shops) {
+            if(shop.tryGetCheapestProduct(productId)) {
+                if (shop.cheapestProduct(productId) < minPrice) {
+                    resultID = shop.getId();
+                    minPrice = shop.cheapestProduct(productId);
                 }
             }
+        }
+        if (minPrice != Double.MAX_VALUE) {
+            throw new Exception("Product with ID " + productId + " doesn't exist");
         }
         return resultID;
     }
 
-    private int countForTryBuy(Product product, double money) {
-        if( product.getCount() > (int) money/product.getValue()) {
-                return (int)(money/product.getValue());
-        } else{
-            return product.getCount();
-        }
-    }
-
-    public Map<String, Integer> tryBuy (String shopId, double money) {
-        Map<String, Integer> buy = new HashMap<>();
+    public Map<UUID, Integer> tryBuy (UUID shopId, double money) {
+        Map<UUID, Integer> buy = new HashMap<>();
         for (Shop shop: shops) {
             if(shop.getId().equals(shopId)) {
-                for(Product product: shop.getProducts()) {
-                    int count = countForTryBuy(product, money);
-                    buy.put(product.getId(), count);
-                }
+                buy.putAll(shop.tryBuy(money));
             }
         }
         return buy;
     }
 
-    public String getCheapestBatch(Map<String, Integer> batch) {
-        String cheapestShopId = null;
+    public UUID getCheapestBatch(Map<UUID, Integer> batch) throws Exception {
+        UUID cheapestShopId = null;
         double minPrice = Double.MAX_VALUE;
-
-        for (Shop shop: shops){
-            double shopPrice = 0;
-            Integer countProductsInShop = 0;
-
-            янеумеювнейминг:
-                for(String key: batch.keySet()) {
-                    for(Product product: shop.getProducts()){
-                        if(product.getId().equals(key)){
-                            if (product.getCount() < batch.get(key)){
-                                break янеумеювнейминг;
-                            } else { // ПРОВЕРИТЬ ВСЁ ЛИ ЭТО  // нет надо добавить сравнение с мин
-                                countProductsInShop++;
-                                shopPrice += batch.get(key) * product.getValue();
-                            }
-                        }
-                    }
-                }
-
-            if (countProductsInShop.equals(batch.size())){
-                if (shopPrice < minPrice){
+        for (Shop shop: shops) {
+            if(shop.tryGetBatch(batch)) {
+                double shopPrice = shop.getBatch(batch);
+                if (shopPrice < minPrice) {
                     minPrice = shopPrice;
                     cheapestShopId = shop.getId();
                 }
             }
         }
-        return cheapestShopId;
+        if (cheapestShopId == null) {
+            throw new Exception("There isn't the batch");
+        } else
+            return cheapestShopId;
     }
 
 }

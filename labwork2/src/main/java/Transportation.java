@@ -1,9 +1,9 @@
 import java.util.ArrayList;
 
-public class Products {
+public class Transportation {
     private ArrayList<Product> products;
 
-    Products(){
+    Transportation(){
         products = new ArrayList<>();
     }
 
