@@ -1,16 +1,21 @@
+import Transports.AirTransports.Broom;
+import Transports.AirTransports.MagicCarpet;
+import Transports.AirTransports.Stupa;
+import Transports.GroundTransports.Boots;
+import Transports.GroundTransports.Camel;
+import Transports.GroundTransports.Centaur;
+import Transports.GroundTransports.SpeedCamel;
 import engine.Brrrrrrr;
-import vehicle.AirTransport;
-import vehicle.GroundTransport;
 import vehicle.Vehicle;
 
 import java.util.ArrayList;
 
 public class TransportManager {
-    private ArrayList<? super Vehicle> transport;
+    private ArrayList<? super Vehicle> transports;
     private Double distance;
 
     TransportManager() {
-        transport = new ArrayList<>();
+        transports = new ArrayList<>();
     }
 
     public void setDistance(Double distance) {
@@ -18,66 +23,39 @@ public class TransportManager {
     }
 
     public void createCamel() {
-        transport.add(new GroundTransport( "двугорбый верблюд", 10, 30,
-                new ArrayList<Double>() {{
-                    add(5.0);
-                    add(8.0);
-                }}));
+        transports.add(new Camel());
     }
 
     public void createSpeedCamel() {
-        transport.add(new GroundTransport( "верблюд-быстроход", 40, 10,
-                new ArrayList<Double>() {{
-                    add(5.0);
-                    add(6.5);
-                    add(8.0);
-                }}));
+        transports.add(new SpeedCamel());
     }
 
     public void createCentaur() {
-        transport.add(new GroundTransport( "кентавр", 15, 8,
-                new ArrayList<Double>() {{
-                    add(2.0);
-                }}));
+        transports.add(new Centaur());
     }
 
     public void createBoots() {
-        transport.add(new GroundTransport( "ботинки-вездеходы", 6, 60,
-                new ArrayList<Double>() {{
-                    add(10.0);
-                    add(5.0);
-                }}));
+        transports.add(new Boots());
     }
 
     public void createMagicCarpet() {
-        transport.add(new AirTransport( "ковёр-самолёт", 10,
-                new ArrayList<Double>() {{
-                    add(0.0);
-                    add(0.03);
-                    add(0.1);
-                    add(0.05);
-                }}));
+        transports.add(new MagicCarpet());
     }
 
     public void createStupa() {
-        transport.add(new AirTransport( "ступа", 8,
-                new ArrayList<Double>() {{
-                    add(0.06);
-                }}));
+        transports.add(new Stupa());
     }
 
+
     public void createBroom() {
-        transport.add(new AirTransport( "метла", 20,
-                new ArrayList<Double>() {{
-                    add(0.01); //переделать?, тк последвательно спадает
-                }}));
+        transports.add(new Broom());
     }
 
     private String run(String type) throws Exception {
         if (distance == 0.0D)
             throw new Exception("Distance can't be zero (ноль)");
-        Brrrrrrr br = new Brrrrrrr(transport, type, distance);
-        return br.run();
+        Brrrrrrr go = new Brrrrrrr(transports, type, distance);
+        return go.brrr();
     }
 
     public String runGroundRace() throws Exception {

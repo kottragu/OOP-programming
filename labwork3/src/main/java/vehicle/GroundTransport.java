@@ -14,6 +14,7 @@ public class GroundTransport extends Vehicle {
         this.restDuration = restDuration;
     }
 
+
     public double getSpeed() {
         return speed;
     }
@@ -24,6 +25,25 @@ public class GroundTransport extends Vehicle {
 
     public String getName() {
         return super.name;
+    }
+
+    private int findIndex(int index) {
+        if (getRestDuration().size() > index){
+            return index;
+        } else {
+            return findIndex(index-1);
+        }
+    }
+
+    public double getTime(double dist) {
+        double temp = 0.0D;
+        double time = (dist/getSpeed()); //чистое время, которое он потратит на бег
+        temp += time;
+        int countOfRest = (int) (time/getRestInterval());
+        for (int i=0; i < countOfRest; i++) {
+            temp += getRestDuration().get(findIndex(i));
+        }
+        return temp;
     }
 
     public ArrayList<Double> getRestDuration() {

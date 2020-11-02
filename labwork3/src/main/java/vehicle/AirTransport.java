@@ -2,7 +2,7 @@ package vehicle;
 
 import java.util.ArrayList;
 
-public class AirTransport extends Vehicle {
+public abstract class AirTransport extends Vehicle {
     private final double speed;
     private final ArrayList<Double> distanceReducer;
 
@@ -20,6 +20,15 @@ public class AirTransport extends Vehicle {
         return super.name;
     }
 
+    public abstract double getTime(double dist);
+
+    protected int findIndex(int index) {
+        if (getDistanceReducer().size() > index) {
+            return index;
+        } else {
+            return findIndex(index-1);
+        }
+    }
 
     public ArrayList<Double> getDistanceReducer() {
         return distanceReducer;
