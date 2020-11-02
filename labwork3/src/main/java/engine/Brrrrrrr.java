@@ -1,9 +1,7 @@
 package engine;
 
 import javafx.util.Pair;
-import vehicle.AirTransport;
-import vehicle.GroundTransport;
-import vehicle.Vehicle;
+import vehicle.*;
 
 import java.util.ArrayList;
 

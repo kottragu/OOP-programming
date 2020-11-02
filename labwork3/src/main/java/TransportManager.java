@@ -1,10 +1,5 @@
-import Transports.AirTransports.Broom;
-import Transports.AirTransports.MagicCarpet;
-import Transports.AirTransports.Stupa;
-import Transports.GroundTransports.Boots;
-import Transports.GroundTransports.Camel;
-import Transports.GroundTransports.Centaur;
-import Transports.GroundTransports.SpeedCamel;
+import Transports.AirTransports.*;
+import Transports.GroundTransports.*;
 import engine.Brrrrrrr;
 import vehicle.Vehicle;
 
