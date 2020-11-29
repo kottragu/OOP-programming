@@ -1,5 +1,7 @@
 package Create;
 
+import Backup.TypeOfAlgo;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +15,7 @@ public class SeparatedCreateAlgorithm implements ICreateAlgorithm {
     public SeparatedCreateAlgorithm() {}
 
     @Override
-    public void setData(ArrayList<String> filePaths, String backupPath) throws IOException { //backupPath must be with restore point ID
+    public void create(ArrayList<String> filePaths, String backupPath) throws IOException { //backupPath must be with restore point ID
         File directory = new File(backupPath);
         directory.mkdirs();
         for (String path: filePaths) {
@@ -37,6 +39,11 @@ public class SeparatedCreateAlgorithm implements ICreateAlgorithm {
             resultSize += file.length();
         }
         return resultSize;
+    }
+
+    @Override
+    public TypeOfAlgo getType() {
+        return TypeOfAlgo.SEPARATED;
     }
 
 }

@@ -25,68 +25,35 @@ public class Backup {
     private String resultPath;
     private ClearingRP clearingRP = null;
 
-    private void setDataBackup (String path) {
+    public Backup() {
+        this("C:" + File.separator + "Users" + File.separator + System.getProperty("user.name") + File.separator + "Documents");
+    }
+
+    public Backup(String path) {
         resultPath = path;
         id = UUID.randomUUID();
         creationTime = new Date();
         filePaths = new ArrayList<>();
         restorePoints = new ArrayList<>();
-        File file = new File(path + File.separator + id);
+        File file = new File(resultPath + File.separator + id);
         file.mkdirs();
     }
 
-    public Backup() {
-        resultPath = "C:" + File.separator + "Users" + File.separator + System.getProperty("user.name") + File.separator + "Documents";
-        setDataBackup(resultPath);
-    }
-
-    public Backup(String path) {
-        resultPath = path;
-        setDataBackup(resultPath);
-    }
-
-    public void createRestorePoint(String typeOfAlgo, String typeOfRestorePoint) throws Exception {
+    public void createRestorePoint(ICreateAlgorithm algorithm, TypeOfRestorePoint typeOfRestorePoint) throws Exception {
         if (filePaths.isEmpty())
             throw new Exception("Нет добавленных файлов");
-        typeOfAlgo = typeOfAlgo.toLowerCase();
-        typeOfRestorePoint = typeOfRestorePoint.toLowerCase();
 
-        if (!(typeOfAlgo.equals("separated") || typeOfAlgo.equals("shared"))) {
-            throw new Exception("Incorrect type of creating algorithm");
+        RestorePoint restorePoint = new RestorePoint(resultPath + File.separator + id, filePaths, restorePointCounter, typeOfRestorePoint, algorithm.getType());
+        if (typeOfRestorePoint.equals(TypeOfRestorePoint.FULL)) {
+            creatingFull(restorePoint, algorithm);
         }
-        if (!(typeOfRestorePoint.equals("full") || typeOfRestorePoint.equals("incremental"))) {
-            throw new Exception("Incorrect type of Restore Point");
-        }
-
-        if (typeOfRestorePoint.equals("full")) {
-            if (typeOfAlgo.equals("separated")) {
-                RestorePoint restorePoint = new RestorePoint(resultPath + File.separator + id, filePaths, restorePointCounter, typeOfRestorePoint, typeOfAlgo);
-                ICreateAlgorithm algorithm = new SeparatedCreateAlgorithm();
-                creatingFull(restorePoint, algorithm);
-            }
-            if (typeOfAlgo.equals("shared")) {
-                RestorePoint restorePoint = new RestorePoint(resultPath + File.separator + id, filePaths, restorePointCounter, typeOfRestorePoint, typeOfAlgo);
-                ICreateAlgorithm algorithm = new SharedCreateAlgorithm();
-                creatingFull(restorePoint, algorithm);
-            }
-        }
-
-        if (typeOfRestorePoint.contains("incremental")) {
-            if (typeOfAlgo.equals("separated")) {
-                RestorePoint restorePoint = new RestorePoint(resultPath + File.separator + id, filePaths, restorePointCounter, typeOfRestorePoint, typeOfAlgo);
-                ICreateAlgorithm algorithm = new SeparatedCreateAlgorithm();
-                creatingInc(restorePoint, algorithm);
-            }
-            if (typeOfAlgo.equals("shared")) {
-                RestorePoint restorePoint = new RestorePoint(resultPath + File.separator + id, filePaths, restorePointCounter, typeOfRestorePoint, typeOfAlgo);
-                ICreateAlgorithm algorithm = new SharedCreateAlgorithm();
-                creatingInc(restorePoint, algorithm);
-            }
+        if (typeOfRestorePoint.equals(TypeOfRestorePoint.INCREMENTAL)) {
+            creatingInc(restorePoint, algorithm);
         }
     }
 
     private void creatingFull(RestorePoint restorePoint, ICreateAlgorithm algorithm) throws Exception {
-        algorithm.setData(filePaths,resultPath + File.separator + id + File.separator + restorePointCounter);
+        algorithm.create(filePaths,resultPath + File.separator + id + File.separator + restorePointCounter);
         restorePoint.setSize(algorithm.getSize(resultPath + File.separator + id + File.separator + restorePointCounter));
         backupSize += restorePoint.getSize();
         restorePoints.add(restorePoint);
@@ -94,26 +61,26 @@ public class Backup {
     }
 
     private void creatingInc(RestorePoint restorePoint, ICreateAlgorithm algorithm) throws Exception {
-        algorithm.setData(чекАмплитуда(),resultPath + File.separator + id + File.separator + restorePointCounter);
+        algorithm.create(чекАмплисюда(),resultPath + File.separator + id + File.separator + restorePointCounter);
         restorePoint.setSize(algorithm.getSize(resultPath + File.separator + id + File.separator + restorePointCounter));
         backupSize += restorePoint.getSize();
         restorePoints.add(restorePoint);
         restorePointCounter++;
     }
 
-    public ArrayList<String> чекАмплитуда() {
-        ArrayList<String> амплитуда = new ArrayList<>();
+    public ArrayList<String> чекАмплисюда() {
+        ArrayList<String> амплисюда = new ArrayList<>();
         if (restorePoints.size() > 0) {
             ArrayList<String> oldPaths = new ArrayList<>(restorePoints.get(restorePoints.size()-1).getFilePaths());
             for (String s: filePaths) {
                 if (!oldPaths.contains(s)) {
-                    амплитуда.add(s);
+                    амплисюда.add(s);
                 }
             }
         } else {
             return filePaths;
         }
-        return амплитуда;
+        return амплисюда;
     }
 
     public boolean addFile(String path) {
@@ -129,17 +96,16 @@ public class Backup {
         filePaths.remove(path);
     }
 
-    public void deleteRestorePoint(Integer id) throws IOException {
+    public void deleteRestorePoint(Integer id) throws Exception {
         RestorePoint point = null;
         for (RestorePoint rp: restorePoints) {
             if (id.equals(rp.getId())) {
                 point = rp;
             }
         }
-        assert point != null;
-        if (point.getType().equals("full")) {
+        if (point.getType().equals(TypeOfRestorePoint.FULL)) {
             restorePoints.remove(point);
-            if (point.getAlgo().equals("shared")) {
+            if (point.getAlgo().equals(TypeOfAlgo.SHARED)) {
                 IDeleteAlgorithm shared = new SharedDeleteAlgorithm();
                 shared.delete(point);
             } else {
@@ -147,26 +113,26 @@ public class Backup {
                 separated.delete(point);
             }
         }
-        if (point.getType().equals("incremental") && point.getAlgo().equals("separated")) {
+        if (point.getType().equals(TypeOfRestorePoint.INCREMENTAL) && point.getAlgo().equals(TypeOfAlgo.SEPARATED)) {
             restorePoints.remove(point);
-            if (restorePoints.stream().noneMatch(rp -> rp.getAlgo().equals("incremental"))) {
+            if (restorePoints.stream().noneMatch(rp -> rp.getAlgo().equals(TypeOfAlgo.SEPARATED))) {
                 IDeleteAlgorithm deleteAlgorithm = new SeparatedDeleteAlgorithm();
                 deleteAlgorithm.delete(point);
             } else {
-                RestorePoint newFirst = restorePoints.stream().filter(rp -> rp.getAlgo().equals("incremental")).findFirst().get();
+                RestorePoint newFirst = restorePoints.stream().filter(rp -> rp.getAlgo().equals(TypeOfAlgo.SEPARATED)).findFirst().get();
                 File newFirstFile = new File(newFirst.getResultPath());
                 File oldFistFile = new File(point.getResultPath());
                 checkFiles(newFirstFile,oldFistFile);
             }
         }
 
-        if (point.getType().equals("incremental") && point.getAlgo().equals("shared")) {
+        if (point.getType().equals(TypeOfRestorePoint.INCREMENTAL) && point.getAlgo().equals(TypeOfAlgo.SHARED)) {
             restorePoints.remove(point);
-            if (restorePoints.stream().noneMatch(rp -> rp.getAlgo().equals("incremental"))) {
+            if (restorePoints.stream().noneMatch(rp -> rp.getAlgo().equals(TypeOfAlgo.SHARED))) {
                 IDeleteAlgorithm deleteAlgorithm = new SharedDeleteAlgorithm();
                 deleteAlgorithm.delete(point);
             } else {
-                RestorePoint newFirst = restorePoints.stream().filter(rp -> rp.getAlgo().equals("incremental")).findFirst().get();
+                RestorePoint newFirst = restorePoints.stream().filter(rp -> rp.getAlgo().equals(TypeOfAlgo.SEPARATED)).findFirst().get();
                 checkFilesZip(newFirst.getResultPath() + File.separator + "Backup.zip",point.getResultPath() + File.separator + "Backup.zip");
             }
         }
@@ -220,6 +186,10 @@ public class Backup {
         if (clearingRP == null) {
             throw new Exception("You must use method setClearingRestorePoint before");
         }
+        if (restorePoints.size() == 0) {
+            throw new Exception("You must add some files");
+        }
+
         ArrayList<RestorePoint> removeRps = clearingRP.Clear(restorePoints);
         for (RestorePoint rp: removeRps) {
             backupSize -= rp.getSize();

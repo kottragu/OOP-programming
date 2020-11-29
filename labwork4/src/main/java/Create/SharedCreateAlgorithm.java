@@ -1,5 +1,7 @@
 package Create;
 
+import Backup.TypeOfAlgo;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,7 +12,7 @@ import java.util.zip.ZipOutputStream;
 public class SharedCreateAlgorithm implements ICreateAlgorithm {
 
     @Override
-    public void setData(ArrayList<String> filePaths, String backupPath) throws Exception {
+    public void create(ArrayList<String> filePaths, String backupPath) throws Exception {
         File file = new File(backupPath + File.separator + "Backup.zip");
         file.createNewFile();
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(backupPath + File.separator + "Backup.zip"));
@@ -31,5 +33,10 @@ public class SharedCreateAlgorithm implements ICreateAlgorithm {
     public long getSize(String backupPath) {
         File file = new File(backupPath + File.separator + "Backup.zip");
         return file.length();
+    }
+
+    @Override
+    public TypeOfAlgo getType() {
+        return TypeOfAlgo.SHARED;
     }
 }

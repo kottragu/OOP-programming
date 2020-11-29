@@ -13,11 +13,11 @@ public class RestorePoint {
     private String resultPath;
     private long restorePointSize;
     private Date date;
-    private String algo;
-    private String type;
+    private TypeOfAlgo algo;
+    private TypeOfRestorePoint type;
     private Integer id;
 
-    RestorePoint(String backupPath, ArrayList<String> filePaths, int id, String type, String algo) {
+    RestorePoint(String backupPath, ArrayList<String> filePaths, int id, TypeOfRestorePoint type, TypeOfAlgo algo) {
         this.id = id;
         this.resultPath = backupPath + File.separator + id;
         File file = new File(resultPath);
@@ -28,11 +28,11 @@ public class RestorePoint {
         this.type = type;
     }
 
-    public String getAlgo() {
+    public TypeOfAlgo getAlgo() {
         return algo;
     }
 
-    public String getType() {
+    public TypeOfRestorePoint getType() {
         return type;
     }
 
