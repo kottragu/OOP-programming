@@ -3,10 +3,8 @@ package Backup;
 import Create.ICreateAlgorithm;
 import Create.SeparatedCreateAlgorithm;
 import Create.SharedCreateAlgorithm;
-import Delete.ClearingRP;
-import Delete.IDeleteAlgorithm;
-import Delete.SeparatedDeleteAlgorithm;
-import Delete.SharedDeleteAlgorithm;
+import Delete.*;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -178,19 +176,12 @@ public class Backup {
     }
 
 
-    public void setClearingRestorePoint(ClearingRP clearingRP) {
-            this.clearingRP = clearingRP;
-    }
-
-    public void clearRestorePoint() throws Exception{
-        if (clearingRP == null) {
-            throw new Exception("You must use method setClearingRestorePoint before");
-        }
+    public void clearRestorePoint(IClearingAlgo ... algos) throws Exception{
         if (restorePoints.size() == 0) {
             throw new Exception("You must add some files");
         }
 
-        ArrayList<RestorePoint> removeRps = clearingRP.Clear(restorePoints);
+        ArrayList<RestorePoint> removeRps = (new ClearingRP()).Clear(restorePoints,algos);
         for (RestorePoint rp: removeRps) {
             backupSize -= rp.getSize();
         }
