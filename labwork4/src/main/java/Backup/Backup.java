@@ -176,12 +176,12 @@ public class Backup {
     }
 
 
-    public void clearRestorePoint(IClearingAlgo ... algos) throws Exception{
+    public void clearRestorePoint(TypeOfClearing typeOfClearing, IClearingAlgo ... algos) throws Exception{
         if (restorePoints.size() == 0) {
             throw new Exception("You must add some files");
         }
 
-        ArrayList<RestorePoint> removeRps = (new ClearingRP()).Clear(restorePoints,algos);
+        ArrayList<RestorePoint> removeRps = (new ClearingRP()).Clear(typeOfClearing,restorePoints,algos);
         for (RestorePoint rp: removeRps) {
             backupSize -= rp.getSize();
         }

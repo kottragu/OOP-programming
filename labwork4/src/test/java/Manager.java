@@ -4,6 +4,7 @@ import Create.SharedCreateAlgorithm;
 import Delete.ClearingAlgoCount;
 import Delete.ClearingAlgoSize;
 import Delete.ClearingRP;
+import Delete.TypeOfClearing;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
@@ -23,7 +24,7 @@ public class Manager {
         assertEquals(zf.size(),2);
         zf.close();
         backup.createRestorePoint(new SeparatedCreateAlgorithm(), TypeOfRestorePoint.FULL);
-        backup.clearRestorePoint(new ClearingAlgoCount(1));
+        backup.clearRestorePoint(TypeOfClearing.ONE, new ClearingAlgoCount(1));
         assertEquals(1, backup.getBackupLength());
     }
 
@@ -35,7 +36,7 @@ public class Manager {
         backup.createRestorePoint(new SeparatedCreateAlgorithm(), TypeOfRestorePoint.FULL);
         backup.createRestorePoint(new SeparatedCreateAlgorithm(), TypeOfRestorePoint.FULL);
         assertEquals(backup.getBackupSize(), 400);
-        backup.clearRestorePoint(new ClearingAlgoSize(250));
+        backup.clearRestorePoint((TypeOfClearing.ONE), new ClearingAlgoSize(250));
         Path path = Paths.get("C:" + File.separator + "Users" + File.separator + System.getProperty("user.name") + File.separator + "Documents" + File.separator + backup.getId().toString());
         assertEquals(1, (int) Files.list(path).count());
     }
@@ -60,12 +61,12 @@ public class Manager {
        backup.createRestorePoint(new SeparatedCreateAlgorithm(),TypeOfRestorePoint.FULL);
        backup.addFile("src\\main\\resources\\t3.txt");
        backup.createRestorePoint(new SharedCreateAlgorithm(), TypeOfRestorePoint.FULL);
-       backup.clearRestorePoint(new ClearingAlgoSize(800), new ClearingAlgoCount(2));
+       backup.clearRestorePoint(TypeOfClearing.ONE,new ClearingAlgoSize(800), new ClearingAlgoCount(2));
        Path path = Paths.get("C:" + File.separator + "Users" + File.separator + System.getProperty("user.name") + File.separator + "Documents" + File.separator + backup.getId().toString());
        assertEquals((int) Files.list(path).count(),2);
        backup.addFile("src\\main\\resources\\test.txt");
        backup.createRestorePoint(new SharedCreateAlgorithm(),TypeOfRestorePoint.FULL);
-       backup.clearRestorePoint(new ClearingAlgoSize(800), new ClearingAlgoCount(2));
+       backup.clearRestorePoint(TypeOfClearing.ONE, new ClearingAlgoSize(800), new ClearingAlgoCount(2));
        assertEquals(1, (int) Files.list(path).count());
     }
 }

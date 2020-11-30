@@ -17,13 +17,37 @@ public class ClearingRP {
         rps.addAll(set);
     }
 
-    public ArrayList<RestorePoint> Clear(ArrayList<RestorePoint> rps, IClearingAlgo ... clearingAlgos) {
-        ArrayList<RestorePoint> removeRps = new ArrayList<>();
-        for (IClearingAlgo algo: clearingAlgos) {
-            removeRps.addAll(algo.clear(rps));
+    public ArrayList<RestorePoint> check(ArrayList<RestorePoint> rps, int maxCount) {
+        ArrayList<RestorePoint> result = new ArrayList<>();
+        for (RestorePoint rp: rps) {
+            int count = 0;
+            for (RestorePoint _rp: rps) {
+                if (rp.equals(_rp)) {
+                    count++;
+                }
+            }
+            if (count == maxCount) {
+                result.add(rp);
+            }
         }
+        checkDuplicate(result);
+        return result;
+    }
 
-        checkDuplicate(removeRps);
+    public ArrayList<RestorePoint> Clear(TypeOfClearing typeOfClearing, ArrayList<RestorePoint> rps, IClearingAlgo ... clearingAlgos) {
+        ArrayList<RestorePoint> removeRps = new ArrayList<>();
+        if (typeOfClearing.equals(TypeOfClearing.ONE)) {
+            for (IClearingAlgo algo : clearingAlgos) {
+                removeRps.addAll(algo.clear(rps));
+            }
+            checkDuplicate(removeRps);
+        } else if (typeOfClearing.equals(TypeOfClearing.ALL)){
+            ArrayList<RestorePoint> _removeRps = new ArrayList<>();
+            for (IClearingAlgo algo : clearingAlgos) {
+                _removeRps.addAll(algo.clear(rps));
+            }
+            removeRps.addAll(check(_removeRps, clearingAlgos.length));
+        }
         return removeRps;
     }
 }
