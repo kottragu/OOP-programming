@@ -2,7 +2,7 @@ package BankAccount;
 
 import java.util.UUID;
 
-public class Credit implements IBankAccount {
+public class Credit implements BankAccount {
     Double limit; //по модулю!
     Double commission;
     String id;

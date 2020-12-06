@@ -1,18 +1,19 @@
 package Bank;
 
 import Bank.Client.Client;
-import BankAccount.IBankAccount;
+import BankAccount.BankAccount;
 import Transactions.CompletedTransactions;
-import Transactions.Transaction;
+import Transactions.DefaultTransaction;
+import Transactions.TypeOfTransaction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Tinkoff extends Bank implements IBank {
+public class Tinkoff extends Bank implements BankMethod {
     private static Tinkoff tinkoff = null;
-    private Map<Client, ArrayList<IBankAccount>> clients;
+    private Map<Client, ArrayList<BankAccount>> clients;
     private double debitPercent = 0.03;
     private String bankID;
     private Map<Double, Double> depositCondition; //сумма-проценты
@@ -52,18 +53,28 @@ public class Tinkoff extends Bank implements IBank {
         throw new Exception("Client doesn't exit");
     }
 
-    @Override
-    public UUID createClient(String firstName, String secondName) {
+    public UUID createClient(String firstName, String secondName) throws Exception {
         return super.createClient(firstName, secondName, clients);
     }
 
-    @Override
+    public UUID updateClient(UUID clientID, String address) throws Exception {
+        return super.updateClient(clientID, clients, address);
+    }
+
+    public UUID updateClient(UUID clientID, Integer passport) throws Exception {
+        return super.updateClient(clientID, clients, passport);
+    }
+
+    public UUID updateClient(UUID clientID, String address, Integer passport) throws Exception {
+        return super.updateClient(clientID, clients, passport, address);
+    }
+
     public boolean withdraw(double money, String bankAccountID) {
         if (!bankAccountID.substring(0, 1).equals(bankID))
             return false;
         boolean result = super.withdraw(money, bankAccountID, limitDoubtfulWithdraw, clients);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(bankAccountID, null, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(bankAccountID, null, money, TypeOfTransaction.WITHDRAW));
         return result;
     }
 
@@ -73,20 +84,8 @@ public class Tinkoff extends Bank implements IBank {
             return false;
         boolean result = super.zp(money, bankAccountID, clients);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(null, bankAccountID, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(null, bankAccountID, money, TypeOfTransaction.ZARPLATA));
         return result;
-    }
-
-    @Override
-    public double getMoney(String bankAccountId) throws Exception {
-        for (Client client: clients.keySet()) {
-            for (IBankAccount bankAccount: clients.get(client)) {
-                if (bankAccount.getId().equals(bankAccountId)) {
-                    return bankAccount.getMoney();
-                }
-            }
-        }
-        throw new Exception("вложенны в капитал прожиточного минимума");
     }
 
     @Override
@@ -105,10 +104,21 @@ public class Tinkoff extends Bank implements IBank {
     }
 
     @Override
+    public double getMoney(String bankAccountId) throws Exception {
+        for (Client client: clients.keySet()) {
+            for (BankAccount bankAccount: clients.get(client)) {
+                if (bankAccount.getId().equals(bankAccountId)) {
+                    return bankAccount.getMoney();
+                }
+            }
+        }
+        throw new Exception("вложенны в капитал прожиточного минимума");
+    }
+
+    @Override
     public String createCreditAccount(UUID clientID) throws Exception {
         return super.createCreditAccount(clientID, clients, bankID, limit, commission);
     }
-
 
     public String createDebitBankAccount(UUID clientID) throws Exception {
         return super.createDebitBankAccount(clientID, clients, debitPercent, bankID);
@@ -124,12 +134,12 @@ public class Tinkoff extends Bank implements IBank {
             return false;
         boolean result = super.transfer(money, bankAccountIdFrom, bankAccountIdTo, this);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(bankAccountIdFrom, bankAccountIdTo, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(bankAccountIdFrom, bankAccountIdTo, money, TypeOfTransaction.TRANSFER));
         return result;
     }
 
     @Override
-    public Map<Client, ArrayList<IBankAccount>> getClients() {
+    public Map<Client, ArrayList<BankAccount>> getClients() {
         return clients;
     }
 
@@ -161,7 +171,7 @@ public class Tinkoff extends Bank implements IBank {
     @Override
     public void nextDay() {
         for (Client client: clients.keySet()) {
-            clients.get(client).forEach(IBankAccount::nextDay);
+            clients.get(client).forEach(BankAccount::nextDay);
         }
     }
 }

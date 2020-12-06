@@ -7,7 +7,7 @@ public class TimeMachine extends Bank  {
             throw new Exception("0 дней? Серьёзно?");
         }
         while (days != 0) {
-            Bank.getBanks().forEach(IBank::nextDay);
+            Bank.getBanks().forEach(BankMethod::nextDay);
             days--;
         }
     }

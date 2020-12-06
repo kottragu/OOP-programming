@@ -5,10 +5,10 @@ import java.util.UUID;
 
 public class CompletedTransactions {
     private static CompletedTransactions thisClass = null;
-    private ArrayList<ITransaction> completedTransactions;
+    private ArrayList<Transaction> completedTransactions;
 
     private CompletedTransactions() {
-        completedTransactions = new ArrayList<ITransaction>();
+        completedTransactions = new ArrayList<Transaction>();
     }
 
     public static CompletedTransactions getCompletedTransactions() {
@@ -17,12 +17,12 @@ public class CompletedTransactions {
         return thisClass;
     }
 
-    public void addTransaction(ITransaction transaction) {
+    public void addTransaction(Transaction transaction) {
         completedTransactions.add(transaction);
     }
 
-    public ITransaction getTransaction(UUID transactionID) {
-        for (ITransaction t: completedTransactions) {
+    public Transaction getTransaction(UUID transactionID) {
+        for (Transaction t: completedTransactions) {
             if (t.getId().equals(transactionID)) {
                 return t;
             }
@@ -30,7 +30,7 @@ public class CompletedTransactions {
         return null;
     }
 
-    public ITransaction getLastTransaction() throws Exception {
+    public Transaction getLastTransaction() throws Exception {
         if (completedTransactions.size() > 0)
             return completedTransactions.get(completedTransactions.size()-1);
         throw new Exception("Unavailable request");
@@ -39,7 +39,7 @@ public class CompletedTransactions {
         return completedTransactions.stream().anyMatch(tr -> tr.getId().equals(transactionID));
     }
 
-    public void removeTransaction(ITransaction transaction) {
+    public void removeTransaction(Transaction transaction) {
         completedTransactions.remove(transaction);
     }
 }

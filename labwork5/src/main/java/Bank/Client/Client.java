@@ -8,8 +8,8 @@ public class Client {
     private final UUID id;
     private final String firstName;
     private final String secondName;
-    private String address;
-    private Integer passport;
+    private String address = null;
+    private Integer passport = null;
     private boolean doubtful = true;
 
     public Client(String firstName, String secondName) {
@@ -18,13 +18,22 @@ public class Client {
         this.secondName = secondName;
     }
 
-    public void setAddress(String address) {
+    public Client(String firstName, String secondName, String address) {
+        this(firstName, secondName);
         this.address = address;
         doubtful = false;
     }
 
-    public void setPassport(Integer passport) {
+    public Client(String firstName, String secondName, Integer passport) {
+        this(firstName, secondName);
         this.passport = passport;
+        doubtful = false;
+    }
+
+    public Client(String firstName, String secondName, Integer passport, String address) {
+        this(firstName, secondName);
+        this.passport = passport;
+        this.address = address;
         doubtful = false;
     }
 

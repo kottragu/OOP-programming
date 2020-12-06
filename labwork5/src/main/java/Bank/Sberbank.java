@@ -8,12 +8,12 @@ import java.util.UUID;
 import Bank.Client.Client;
 import BankAccount.*;
 import Transactions.CompletedTransactions;
-import Transactions.ITransaction;
-import Transactions.Transaction;
+import Transactions.DefaultTransaction;
+import Transactions.TypeOfTransaction;
 
-public class Sberbank extends Bank implements IBank {
+public class Sberbank extends Bank implements BankMethod {
     private static Sberbank sber = null;
-    private Map<Client, ArrayList<IBankAccount>> clients;
+    private Map<Client, ArrayList<BankAccount>> clients;
     private double debitPercent = 0.04;
     private String bankID;
     private Map<Double, Double> depositCondition; //сумма-проценты
@@ -25,6 +25,7 @@ public class Sberbank extends Bank implements IBank {
     private double limitDoubtfulWithdraw = 5000;
 
     private Sberbank() {
+
         clients = new HashMap<>();
         bankID = count.toString();
         count++;
@@ -53,8 +54,20 @@ public class Sberbank extends Bank implements IBank {
         throw new Exception("Client doesn't exit");
     }
 
-    public UUID createClient(String firstName, String secondName) {
+    public UUID createClient(String firstName, String secondName) throws Exception {
         return super.createClient(firstName, secondName, clients);
+    }
+
+    public UUID updateClient(UUID clientID, String address) throws Exception {
+        return super.updateClient(clientID, clients, address);
+    }
+
+    public UUID updateClient(UUID clientID, Integer passport) throws Exception {
+        return super.updateClient(clientID, clients, passport);
+    }
+
+    public UUID updateClient(UUID clientID, String address, Integer passport) throws Exception {
+        return super.updateClient(clientID, clients, passport, address);
     }
 
     public boolean withdraw(double money, String bankAccountID) {
@@ -62,7 +75,7 @@ public class Sberbank extends Bank implements IBank {
             return false;
         boolean result = super.withdraw(money, bankAccountID, limitDoubtfulWithdraw, clients);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(bankAccountID, null, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(bankAccountID, null, money, TypeOfTransaction.WITHDRAW));
         return result;
     }
 
@@ -72,7 +85,7 @@ public class Sberbank extends Bank implements IBank {
             return false;
         boolean result = super.zp(money, bankAccountID, clients);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(null, bankAccountID, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(null, bankAccountID, money, TypeOfTransaction.ZARPLATA));
         return result;
     }
 
@@ -94,7 +107,7 @@ public class Sberbank extends Bank implements IBank {
     @Override
     public double getMoney(String bankAccountId) throws Exception {
         for (Client client: clients.keySet()) {
-            for (IBankAccount bankAccount: clients.get(client)) {
+            for (BankAccount bankAccount: clients.get(client)) {
                 if (bankAccount.getId().equals(bankAccountId)) {
                     return bankAccount.getMoney();
                 }
@@ -122,12 +135,12 @@ public class Sberbank extends Bank implements IBank {
             return false;
         boolean result = super.transfer(money, bankAccountIdFrom, bankAccountIdTo, this);
         if (result)
-            CompletedTransactions.getCompletedTransactions().addTransaction(new Transaction(bankAccountIdFrom, bankAccountIdTo, money));
+            CompletedTransactions.getCompletedTransactions().addTransaction(new DefaultTransaction(bankAccountIdFrom, bankAccountIdTo, money, TypeOfTransaction.TRANSFER));
         return result;
     }
 
     @Override
-    public Map<Client, ArrayList<IBankAccount>> getClients() {
+    public Map<Client, ArrayList<BankAccount>> getClients() {
         return clients;
     }
 
@@ -159,7 +172,7 @@ public class Sberbank extends Bank implements IBank {
     @Override
     public void nextDay() {
         for (Client client: clients.keySet()) {
-            clients.get(client).forEach(IBankAccount::nextDay);
+            clients.get(client).forEach(BankAccount::nextDay);
         }
     }
 }

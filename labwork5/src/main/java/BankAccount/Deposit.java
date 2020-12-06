@@ -2,7 +2,7 @@ package BankAccount;
 
 import java.util.UUID;
 
-public class Deposit implements IBankAccount {
+public class Deposit implements BankAccount {
     double money;
     double everyDayPercent;
     String id;

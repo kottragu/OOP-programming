@@ -23,7 +23,6 @@ public class Tests {
     public void test2() throws Exception {
         Tinkoff t = Tinkoff.getTinkoff();
         Raiffeizen r = Raiffeizen.getRaiffeizen();
-        Sberbank s = Sberbank.getSberbank();
         UUID rc1 = r.createClient("Дядя", "Вася");
         String rid = r.createDepositBankAccount(rc1, 25000, 25);
         TimeMachine tm = new TimeMachine();
@@ -36,7 +35,7 @@ public class Tests {
         t.addMoney(50000.0,tc1Credit);
         Assert.assertFalse(t.withdraw(20000,tc1Credit));
 
-        t.getClient(tc1).setAddress("подземный переход в Купчино");
+        t.updateClient(tc1, "подземный переход в Купчино");
         Assert.assertTrue(t.withdraw(20000,tc1Credit));
 
         Assert.assertTrue(t.transfer(tc1Credit, rid, 25000));
